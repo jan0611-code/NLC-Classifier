@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>NLC Phase Classifier</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 40px; margin: 0; }
+        .container { width: 100%; max-width: 500px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: #1a73e8; color: white; padding: 25px; text-align: center; }
+        .content { padding: 30px; }
+        .upload-box { border: 2px dashed #1a73e8; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; background: #f8fbff; margin-bottom: 20px; }
+        .display-img { max-width: 100%; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .result-main { background: #e8f0fe; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
+        .bar-container { background: #eee; height: 10px; border-radius: 5px; margin: 8px 0 15px 0; overflow: hidden; }
+        .bar-fill { background: #1a73e8; height: 100%; transition: width 0.6s ease-in-out; }
+        .phase-name { font-size: 0.9rem; font-weight: bold; display: flex; justify-content: space-between; }
+        .btn-reset { display: block; text-align: center; margin-top: 20px; color: #1a73e8; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header"><h2>Nematic Classifier</h2></div>
+    <div class="content">
+        
+        <form action="/" method="post" enctype="multipart/form-data" id="upForm">
+            <div class="upload-box" onclick="document.getElementById('fileInput').click();">
+                {% if image_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + image_path) }}" class="display-img">
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">Klik untuk ganti gambar</p>
+                {% else %}
+                    <p style="color: #1a73e8; font-weight: bold;">Pilih Gambar Nematik</p>
+                    <img id="preview" style="display:none; max-width:100%; border-radius:10px;">
+                {% endif %}
+                <input type="file" name="file" id="fileInput" hidden onchange="handleUpload(event)">
+            </div>
+        </form>
+
+        {% if all_predictions %}
+        <div class="result-main">
+            <div style="font-size: 0.8rem; color: #555;">Prediksi Terkuat:</div>
+            <div style="font-size: 1.5rem; font-weight: bold; color: #1a73e8;">{{ top_result.name }}</div>
+            <p style="font-size: 0.9rem; color: #444;">{{ top_result.desc }}</p>
+        </div>
+
+        <div class="analysis">
+            <span style="font-size: 0.8rem; font-weight: bold; color: #777;">ANALISIS PROBABILITAS:</span>
+            {% for p in all_predictions %}
+            <div style="margin-top: 15px;">
+                <div class="phase-name">
+                    <span>{{ p.name }}</span>
+                    <span>{{ p.prob }}%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill" style="width: {{ p.prob }}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="/" class="btn-reset">Klasifikasi Gambar Lain</a>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    function handleUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Jika belum ada hasil, tampilkan preview sebentar lalu submit
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const pre = document.getElementById('preview');
+                if(pre) {
+                    pre.src = e.target.result;
+                    pre.style.display = 'block';
+                }
+                setTimeout(() => { document.getElementById('upForm').submit(); }, 300);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+
+</body>
+</html>
